@@ -291,13 +291,13 @@ static void write_pmx_header(FILE* dst) {
      * TODO: Improve.
      * npages, nsyst, musicsize, fracindent
      */
-    fprintf(dst, "0 7 20 0.07\n");
+    fprintf(dst, "0 4 20 0\n");
 
-    /* Instrument name */
-    fprintf(dst, "Piano\n");
+    /* Instrument name: Blank */
+    fprintf(dst, "\n");
 
-    /* Octave treble clef */
-    fprintf(dst, "8\n");
+    /* Clef */
+    fprintf(dst, "7\n");
 
     /* Output path */
     fprintf(dst, "./\n\n");
