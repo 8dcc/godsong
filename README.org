@@ -1,0 +1,14 @@
+#+TITLE: godsong
+#+AUTHOR: 8dcc
+#+OPTIONS: toc:2
+#+STARTUP: nofold
+
+Port of Terry A. Davis' [[https://github.com/Zeal-Operating-System/ZealOS/blob/a95d5559dedf3066a999ad35edf589c332e96ce4/src/System/God/GodSong.ZC#L65][music generator]]. Specifically, it's based on the [[https://github.com/Zeal-Operating-System/ZealOS][ZealOS
+fork]] of [[https://templeos.org/][TempleOS]]. It also provides a way of converting [[https://github.com/Zeal-Operating-System/ZealOS/blob/a95d5559dedf3066a999ad35edf589c332e96ce4/src/System/Sound.ZC#L238][TempleOS songs]] to [[https://ctan.org/pkg/pmx/][PMX
+files]].
+
+* Credits
+
+- Terry A. Davis' [[https://templeos.org/][TempleOS]].
+- [[https://github.com/tinkeros][TinkerOS]]' documentation browser, for both [[https://tinkeros.github.io/WbTempleOS/][TempleOS]] and [[https://tinkeros.github.io/WbGit/][TinkerOS]].
+- The [[https://ctan.math.illinois.edu/support/pmx/doc/pmx300.pdf][PMX preprocessor]] and the [[https://ctan.org/pkg/musixtex][MusiXTeX package]]. See also the [[https://ctan.math.illinois.edu/support/pmx/doc/pmx300.pdf][PMX manual]].
