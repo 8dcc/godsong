@@ -1,3 +1,15 @@
+song2pmx
+
+*.out
+
+*.log
+*.pdf
+*.mx1
+*.pml
+*.pmx
+*.tex
+*.dat
+
 *.FASL
 *.fasl
 *.lisp-temp
