@@ -153,8 +153,6 @@ static double duration_from_specifier(double old_duration, char c) {
  * Convert the decimal duration to PMX format.
  */
 static const char* get_pmx_duration(double duration) {
-    fprintf(stderr, "Duration: %f\n", duration);
-
     if (duration >= 12.0) /* Dotted double-whole */
         return "d9";
     if (duration >= 8.00) /* Double-whole */
