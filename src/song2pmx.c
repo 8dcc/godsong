@@ -259,12 +259,12 @@ static const char* write_note(FILE* dst, const char* song) {
 
     /* Print the PMX note */
     if (tie_status == TIE_OPEN)
-        fputc('(', dst);
+        fprintf(dst, "( ");
     fprintf(dst, "%c%s%d", note, get_pmx_duration(g_duration), g_octave);
     if (accidental != 0)
         fputc(accidental, dst);
     if (tie_status == TIE_CLOSE)
-        fputc(')', dst);
+        fprintf(dst, " )");
     fputc(' ', dst);
 
     /* Go to next tie status: From open to close, and from close to none. */
