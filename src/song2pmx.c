@@ -248,8 +248,12 @@ static const char* write_note(FILE* dst, const char* song) {
                 g_meter_bottom = *song++ - '0';
 
             /* Print the new meter here */
-            fprintf(dst, "m%d/%d/%d/%d ", g_meter_top, g_meter_bottom,
-                    g_meter_top, g_meter_bottom);
+            fprintf(dst,
+                    "m%d/%d/%d/%d ",
+                    g_meter_top,
+                    g_meter_bottom,
+                    g_meter_top,
+                    g_meter_bottom);
         } else if (isdigit(*song)) {
             /* NOTE: Octaves and durations don't need to be global? */
             g_octave = *song - '0';
@@ -297,7 +301,11 @@ static void write_pmx_header(FILE* dst) {
     fprintf(dst, "1 1 ");
 
     /* Meter: mtrnuml, mtrdenl, mtrnmp, mtrdnp */
-    fprintf(dst, "%d %d %d %d ", g_meter_top, g_meter_bottom, g_meter_top,
+    fprintf(dst,
+            "%d %d %d %d ",
+            g_meter_top,
+            g_meter_bottom,
+            g_meter_top,
             g_meter_bottom);
 
     /* xmtrnum0, isig */
