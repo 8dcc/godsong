@@ -146,8 +146,7 @@ static inline bool is_duration_specifier(char c) {
 }
 
 /*
- * Return a PMX duration from a TempleOS specifier. See PMX Manual, Section
- * 2.2.1 Notes.
+ * Return a decimal duration from a TempleOS specifier.
  */
 static double duration_from_specifier(double old_duration, char c) {
     /* clang-format off */
@@ -168,7 +167,8 @@ static double duration_from_specifier(double old_duration, char c) {
 }
 
 /*
- * Convert the decimal duration to PMX format.
+ * Convert the decimal duration to PMX format. See PMX Manual, Section 2.2.1
+ * Notes.
  */
 static const char* get_pmx_duration(double duration) {
     if (duration >= 12.0) /* Dotted double-whole */
