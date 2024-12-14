@@ -19,38 +19,36 @@
  *
  * Paraphrasing Terry's comment on his `Play' function (adding missing stuff):
  *
- *   Notes are entered with a capital letter.
+ *     Notes are entered with a capital letter.
  *
- *   Octaves are entered with a digit and stay set until changed. Mid C is
- *   octave 4.
+ *     Octaves are entered with a digit and stay set until changed. Mid C is
+ *     octave 4.
  *
- *   Durations are entered with:
- *     - 'w' whole note
- *     - 'h' half note
- *     - 'q' quarter note
- *     - 'e' eighth note
- *     - 's' sixteenth note
- *     - 't' sets to 2/3rds the current duration
- *     - '.' sets to 1.5 times the current duration
- *   Durations stay set until changed.
+ *     Durations are entered with:
+ *       - 'w' whole note
+ *       - 'h' half note
+ *       - 'q' quarter note
+ *       - 'e' eighth note
+ *       - 's' sixteenth note
+ *       - 't' sets to 2/3rds the current duration
+ *       - '.' sets to 1.5 times the current duration
+ *     Durations stay set until changed.
  *
- *   The '(' character is used for tie, placed before the note to be extended.
+ *     The '(' character is used for tie, placed before the note to be extended.
  *
- *   `music.meter_top', `music.meter_bottom' is set with:
- *   "M3/4"
- *   "M4/4"
- *   etc.
+ *     `music.meter_top', `music.meter_bottom' is set with: "M3/4", "M4/4", etc.
  *
- *   Sharp and flat are done with '#' or 'b'.
+ *     Sharp and flat are done with '#' or 'b'.
  *
- *   The variable `music.stacatto_factor' can be set to a range from 0.0 to 1.0.
+ *     The variable `music.stacatto_factor' can be set to a range from 0.0 to
+ *     1.0.
  *
- *   The variable `music.tempo' is quarter-notes per second. It defaults to 2.5
- *   and gets faster when bigger.
+ *     The variable `music.tempo' is quarter-notes per second. It defaults to
+ *     2.5 and gets faster when bigger.
  *
  * Note format for PMX:
  *
- *   [<paren-open>]<note>[<basic-time-value><octave><dots><accidental><paren-close>]<space>
+ *     [<paren-open>]<note>[<basic-time-value><octave><dots><accidental><paren-close>]<space>
  *
  * Where [...] is used to denote optional.
  */
