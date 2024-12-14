@@ -50,7 +50,27 @@
  *
  *     [<paren-open>]<note>[<basic-time-value><octave><dots><accidental><paren-close>]<space>
  *
- * Where [...] is used to denote optional.
+ * Where [...] is used to denote optional. Here's a list of possible values for
+ * some of those fields.
+ *
+ *     <note>:
+ *       - a-g: Note in the current octave
+ *     <basic-time-value>:
+ *       - 9: double-whole note
+ *       - 0: whole note
+ *       - 2: half note
+ *       - 4: quarter note
+ *       - 8: eighth note
+ *       - 1: sixteenth note
+ *       - 3: thirty-second (unused)
+ *       - 6: sixty-fourth (unused)
+ *     <dots>:
+ *       - d: dot, adds 50% of the original note's duration
+ *       - dd: double dot, adds 75% of the original note's duration
+ *     <accidental>:
+ *       - f: flat, pitch is half step lower until the next bar line
+ *       - n: natural, used to cancel flats or sharp for the specified note
+ *       - s: sharp, pitch is half step higher until the next bar line
  */
 
 #include <stddef.h>
