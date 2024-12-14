@@ -156,6 +156,11 @@ static inline bool is_duration_specifier(char c) {
 
 /*
  * Return a decimal duration from a TempleOS specifier.
+ *
+ * FIXME: After handling `DURATION_TWO_THIRDS', it's often hard to get a valid
+ * note from `get_pmx_duration'. For example, the TempleOS string "5etE..." sets
+ * the note length to 0.50, and then to 0.33 (2*0.5/3). This duration is not
+ * easy to translate into a partiture (AFAIK).
  */
 static double duration_from_specifier(double old_duration, char c) {
     /* clang-format off */
