@@ -93,6 +93,15 @@ enum EDurationSpecifiers {
 };
 
 /*
+ * Structure containing the strings that should be placed before and after the
+ * "octave" digit in a PMX note. See 'get_pmx_duration' function below.
+ */
+typedef struct {
+    const char* pre_octave;
+    const char* post_octave;
+} PmxDuration;
+
+/*
  * The last set octave [0..9]. By default 4, middle C to B above.
  */
 static int g_octave = 4;
@@ -167,34 +176,37 @@ static double duration_from_specifier(double old_duration, char c) {
 }
 
 /*
- * Convert the decimal duration to PMX format. See PMX Manual, Section 2.2.1
- * Notes.
+ * Convert the decimal duration to PMX format. The returned structure will
+ * contain strings that should be placed before and after the octave digit,
+ * respectively.
+ *
+ * See also PMX Manual, Section 2.2.1 Notes.
  */
-static const char* get_pmx_duration(double duration) {
+static PmxDuration get_pmx_duration(double duration) {
     if (duration >= 12.0) /* Dotted double-whole */
-        return "d9";
+        return (PmxDuration){ "9", "d" };
     if (duration >= 8.00) /* Double-whole */
-        return "9";
+        return (PmxDuration){ "9", NULL };
     if (duration >= 6.00) /* Dotted whole */
-        return "d0";
+        return (PmxDuration){ "0", "d" };
     if (duration >= 4.00) /* Whole */
-        return "0";
+        return (PmxDuration){ "0", NULL };
     if (duration >= 3.00) /* Dotted half */
-        return "d2";
+        return (PmxDuration){ "2", "d" };
     if (duration >= 2.00) /* Half */
-        return "2";
+        return (PmxDuration){ "2", NULL };
     if (duration >= 1.50) /* Dotted quarter */
-        return "d4";
+        return (PmxDuration){ "4", "d" };
     if (duration >= 1.00) /* Quarter */
-        return "4";
+        return (PmxDuration){ "4", NULL };
     if (duration >= 0.75) /* Dotted eighth */
-        return "d8";
+        return (PmxDuration){ "8", "d" };
     if (duration >= 0.50) /* Eighth */
-        return "8";
+        return (PmxDuration){ "8", NULL };
     if (duration >= 0.375) /* Dotted sixteenth */
-        return "d1";
+        return (PmxDuration){ "1", "d" };
     if (duration >= 0.25) /* Sixteenth */
-        return "1";
+        return (PmxDuration){ "1", NULL };
 
     fprintf(stderr, "Unsupported duration: %f\n", duration);
     abort();
@@ -279,10 +291,17 @@ static const char* write_note(FILE* dst, const char* song) {
     for (; is_accidental(*song); song++)
         accidental = convert_accidental(*song);
 
+    /* Get pre-octave and post-octave strings related to duration */
+    PmxDuration pmx_duration = get_pmx_duration(g_duration);
+    const char* pre_octave =
+      (pmx_duration.pre_octave != NULL) ? pmx_duration.pre_octave : "";
+    const char* post_octave =
+      (pmx_duration.post_octave != NULL) ? pmx_duration.post_octave : "";
+
     /* Print the PMX note */
     if (tie_status == TIE_OPEN)
         fprintf(dst, "( ");
-    fprintf(dst, "%c%s%d", note, get_pmx_duration(g_duration), g_octave);
+    fprintf(dst, "%c%s%d%s", note, pre_octave, g_octave, post_octave);
     if (accidental != 0)
         fputc(accidental, dst);
     if (tie_status == TIE_CLOSE)
