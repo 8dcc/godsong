@@ -249,8 +249,13 @@ static const char* write_note(FILE* dst, const char* song) {
         TIE_OPEN  = 2,
     } tie_status = TIE_NONE;
 
-    double duration = 1.0;
-    int octave      = 4;
+    /*
+     * The octave and duration variables have to be static, because if a
+     * TempleOS note doesn't specify one of these values, we need to fall back
+     * to the previous one (the value needs to persist accross calls).
+     */
+    static int octave      = 4;
+    static double duration = 1.0;
 
     for (;;) {
         if (*song == '(') {
