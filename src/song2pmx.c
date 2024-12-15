@@ -93,6 +93,14 @@ enum EDurationSpecifiers {
 };
 
 /*
+ * TempleOS accidentals. They increase or lower the note pitch.
+ */
+enum EAccidentals {
+    ACCIDENTAL_SHARP = '#',
+    ACCIDENTAL_FLAT  = 'b',
+};
+
+/*
  * Structure containing the strings that should be placed before and after the
  * "octave" digit in a PMX note. See 'get_pmx_duration' function below.
  */
@@ -211,21 +219,21 @@ static PmxDuration get_pmx_duration(double duration) {
  * Is the specified character a TempleOS sharp or flat specifier?
  */
 static inline bool is_accidental(char c) {
-    return c == '#' || c == 'b';
+    return c == ACCIDENTAL_SHARP || c == ACCIDENTAL_FLAT;
 }
 
 /*
  * Convert a TempleOS sharp or flat specifier to a valid PMX accidental
  * specifier.
  */
-static char convert_accidental(char c) {
+static const char* get_pmx_accidental(char c) {
     /* clang-format off */
     switch (c) {
-        case '#': return 's'; /* Sharp */
-        case 'b': return 'f'; /* Flat */
+        case ACCIDENTAL_SHARP: return "s";
+        case ACCIDENTAL_FLAT:  return "f";
 
         default:
-            fprintf(stderr, "Invalid pitch modifier: '%c' (%#x).\n", c, c);
+            fprintf(stderr, "Invalid TempleOS accidental: '%c'.\n", c);
             abort();
     }
     /* clang-format on */
@@ -286,9 +294,9 @@ static const char* write_note(FILE* dst, const char* song) {
     const char note = tolower(*song++);
 
     /* Accidentals like sharp of flat */
-    char accidental = 0;
+    const char* accidental = "";
     for (; is_accidental(*song); song++)
-        accidental = convert_accidental(*song);
+        accidental = get_pmx_accidental(*song);
 
     /* Get pre-octave and post-octave strings related to duration */
     PmxDuration pmx_duration = get_pmx_duration(duration);
@@ -300,9 +308,13 @@ static const char* write_note(FILE* dst, const char* song) {
     /* Print the PMX note */
     if (tie_status == TIE_OPEN)
         fprintf(dst, "( ");
-    fprintf(dst, "%c%s%d%s", note, pre_octave, octave, post_octave);
-    if (accidental != 0)
-        fputc(accidental, dst);
+    fprintf(dst,
+            "%c%s%d%s%s",
+            note,
+            pre_octave,
+            octave,
+            post_octave,
+            accidental);
     if (tie_status == TIE_CLOSE)
         fprintf(dst, " )");
     fputc(' ', dst);
