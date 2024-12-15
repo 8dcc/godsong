@@ -46,6 +46,12 @@
  *     The variable `music.tempo' is quarter-notes per second. It defaults to
  *     2.5 and gets faster when bigger.
  *
+ * Something important to note about the 't' and '.' durations. Terry documented
+ * them (in his `Play' function) as "sets to ... the current duration". In
+ * practise, when generating songs with `GodSongStr', they only affect 3 and 1
+ * notes respectively. This makes sense, since they correspond to a "triplet"
+ * and "dot", respectively.
+ *
  * Note format for PMX:
  *
  *     [<paren-open>]<note>[<basic-time-value><octave><dots><accidental><paren-close>]<space>
@@ -66,7 +72,7 @@
  *       - 6: sixty-fourth (unused)
  *     <dots>:
  *       - d: dot, adds 50% of the original note's duration
- *       - dd: double dot, adds 75% of the original note's duration
+ *       - dd: double dot, adds 75% of the original note's duration (unused)
  *     <accidental>:
  *       - f: flat, pitch is half step lower until the next bar line
  *       - n: natural, used to cancel flats or sharp for the specified note
@@ -80,16 +86,23 @@
 #include <ctype.h>
 
 /*
- * TempleOS duration specifiers.
+ * TempleOS duration specifiers. They set the current note duration.
  */
 enum EDurationSpecifiers {
-    DURATION_WHOLE      = 'w',
-    DURATION_HALF       = 'h',
-    DURATION_QUARTER    = 'q',
-    DURATION_EIGHTH     = 'e',
-    DURATION_SIXTEENTH  = 's',
-    DURATION_TWO_THIRDS = 't',
-    DURATION_1_50       = '.',
+    DURATION_WHOLE     = 'w',
+    DURATION_HALF      = 'h',
+    DURATION_QUARTER   = 'q',
+    DURATION_EIGHTH    = 'e',
+    DURATION_SIXTEENTH = 's',
+};
+
+/*
+ * TempleOS duration modifiers. They modify (rather than set) the current note
+ * duration.
+ */
+enum EDurationModifiers {
+    MODIFIER_TRIPLET = 't',
+    MODIFIER_DOT     = '.',
 };
 
 /*
@@ -99,15 +112,6 @@ enum EAccidentals {
     ACCIDENTAL_SHARP = '#',
     ACCIDENTAL_FLAT  = 'b',
 };
-
-/*
- * Structure containing the strings that should be placed before and after the
- * "octave" digit in a PMX note. See 'get_pmx_duration' function below.
- */
-typedef struct {
-    const char* pre_octave;
-    const char* post_octave;
-} PmxDuration;
 
 /*
  * Top and bottom meter values. Correspond to TempleOS' `music.meter_top' and
@@ -148,72 +152,65 @@ static char* read_song(FILE* fp) {
 static inline bool is_duration_specifier(char c) {
     return c == DURATION_WHOLE || c == DURATION_WHOLE || c == DURATION_HALF ||
            c == DURATION_QUARTER || c == DURATION_EIGHTH ||
-           c == DURATION_SIXTEENTH || c == DURATION_TWO_THIRDS ||
-           c == DURATION_1_50;
+           c == DURATION_SIXTEENTH;
 }
 
 /*
- * Return a decimal duration from a TempleOS specifier.
- *
- * FIXME: After handling `DURATION_TWO_THIRDS', it's often hard to get a valid
- * note from `get_pmx_duration'. For example, the TempleOS string "5etE..." sets
- * the note length to 0.50, and then to 0.33 (2*0.5/3). This duration is not
- * easy to translate into a partiture (AFAIK).
+ * Convert a duration in decimal format to PMX format. Other duration modifiers
+ * (such as "triplet" and "dot") are handled in `get_duration_modifier'. See
+ * also PMX Manual, Section 2.2.1 Notes.
  */
-static double duration_from_specifier(double old_duration, char c) {
+static const char* get_pmx_duration(char c) {
     /* clang-format off */
     switch (c) {
-        case DURATION_WHOLE:      return 4.00;
-        case DURATION_HALF:       return 2.00;
-        case DURATION_QUARTER:    return 1.00;
-        case DURATION_EIGHTH:     return 0.50;
-        case DURATION_SIXTEENTH:  return 0.25;
-        case DURATION_TWO_THIRDS: return 2.00 * old_duration / 3.0;
-        case DURATION_1_50:       return 1.50 * old_duration;
+        case DURATION_WHOLE:      return "0";
+        case DURATION_HALF:       return "2";
+        case DURATION_QUARTER:    return "4";
+        case DURATION_EIGHTH:     return "8";
+        case DURATION_SIXTEENTH:  return "1";
 
         default:
-            fprintf(stderr, "Invalid duration modifier: '%c' (%#x).\n", c, c);
+            fprintf(stderr, "Invalid TempleOS duration specifier: '%c'.\n", c);
             abort();
     }
     /* clang-format on */
 }
 
-/*
- * Convert the decimal duration to PMX format. The returned structure will
- * contain strings that should be placed before and after the octave digit,
- * respectively.
- *
- * See also PMX Manual, Section 2.2.1 Notes.
- */
-static PmxDuration get_pmx_duration(double duration) {
-    if (duration >= 12.0) /* Dotted double-whole */
-        return (PmxDuration){ "9", "d" };
-    if (duration >= 8.00) /* Double-whole */
-        return (PmxDuration){ "9", NULL };
-    if (duration >= 6.00) /* Dotted whole */
-        return (PmxDuration){ "0", "d" };
-    if (duration >= 4.00) /* Whole */
-        return (PmxDuration){ "0", NULL };
-    if (duration >= 3.00) /* Dotted half */
-        return (PmxDuration){ "2", "d" };
-    if (duration >= 2.00) /* Half */
-        return (PmxDuration){ "2", NULL };
-    if (duration >= 1.50) /* Dotted quarter */
-        return (PmxDuration){ "4", "d" };
-    if (duration >= 1.00) /* Quarter */
-        return (PmxDuration){ "4", NULL };
-    if (duration >= 0.75) /* Dotted eighth */
-        return (PmxDuration){ "8", "d" };
-    if (duration >= 0.50) /* Eighth */
-        return (PmxDuration){ "8", NULL };
-    if (duration >= 0.375) /* Dotted sixteenth */
-        return (PmxDuration){ "1", "d" };
-    if (duration >= 0.25) /* Sixteenth */
-        return (PmxDuration){ "1", NULL };
+/*----------------------------------------------------------------------------*/
 
-    fprintf(stderr, "Unsupported duration: %f\n", duration);
-    abort();
+/*
+ * Is the specified character a TempleOS song duration modifier?
+ */
+static inline bool is_duration_modifier(char c) {
+    return c == MODIFIER_TRIPLET || c == MODIFIER_DOT;
 }
+
+/*
+ * Return the PMX string corresponding to a TempleOS duration modifier.
+ *
+ * The returned string should be placed after the octave in the PMX note, and
+ * should take precedence over the the `post_octave' member returned by
+ * `get_pmx_duration'.
+ *
+ * NOTE: This function assumes that the TempleOS `DURMOD_TWO_THIRDS' and
+ * `DURMOD_1_50' modifiers only affect 3 or 1 note, respectively. This is true
+ * according to Terry's `GodSongStr' function, but not necessarily from its
+ * documentation. See the topmost comment of this source file.
+ */
+static const char* get_pmx_duration_modifier(char c) {
+    /* clang-format off */
+    switch (c) {
+        case MODIFIER_TRIPLET: return "x3";
+        case MODIFIER_DOT:     return "d";
+
+        default:
+            fprintf(stderr, "Invalid TempleOS duration modifier: '%c'.\n", c);
+            abort();
+    }
+    /* clang-format on */
+}
+
+/*----------------------------------------------------------------------------*/
 
 /*
  * Is the specified character a TempleOS sharp or flat specifier?
@@ -239,6 +236,8 @@ static const char* get_pmx_accidental(char c) {
     /* clang-format on */
 }
 
+/*----------------------------------------------------------------------------*/
+
 static const char* write_note(FILE* dst, const char* song) {
     if (*song == '\0')
         return NULL;
@@ -254,8 +253,15 @@ static const char* write_note(FILE* dst, const char* song) {
      * TempleOS note doesn't specify one of these values, we need to fall back
      * to the previous one (the value needs to persist accross calls).
      */
-    static int octave      = 4;
-    static double duration = 1.0;
+    static const char* duration = "";
+    static int octave           = 4;
+
+    /*
+     * FIXME: In TempleOS songs, if a "triplet" is set with 't', it remains set
+     * until a different note length is specified.
+     */
+    const char* duration_modifier = "";
+    const char* accidental        = "";
 
     for (;;) {
         if (*song == '(') {
@@ -283,7 +289,13 @@ static const char* write_note(FILE* dst, const char* song) {
             octave = *song - '0';
             song++;
         } else if (is_duration_specifier(*song)) {
-            duration = duration_from_specifier(duration, *song);
+            duration = get_pmx_duration(*song);
+            song++;
+        } else if (is_duration_modifier(*song)) {
+            duration_modifier = get_pmx_duration_modifier(*song);
+            song++;
+        } else if (is_accidental(*song)) {
+            accidental = get_pmx_accidental(*song);
             song++;
         } else {
             break;
@@ -298,27 +310,15 @@ static const char* write_note(FILE* dst, const char* song) {
     /* Actual note. Expressed as lowercase in PMX syntax */
     const char note = tolower(*song++);
 
-    /* Accidentals like sharp of flat */
-    const char* accidental = "";
-    for (; is_accidental(*song); song++)
-        accidental = get_pmx_accidental(*song);
-
-    /* Get pre-octave and post-octave strings related to duration */
-    PmxDuration pmx_duration = get_pmx_duration(duration);
-    const char* pre_octave =
-      (pmx_duration.pre_octave != NULL) ? pmx_duration.pre_octave : "";
-    const char* post_octave =
-      (pmx_duration.post_octave != NULL) ? pmx_duration.post_octave : "";
-
     /* Print the PMX note */
     if (tie_status == TIE_OPEN)
         fprintf(dst, "( ");
     fprintf(dst,
             "%c%s%d%s%s",
             note,
-            pre_octave,
+            duration,
             octave,
-            post_octave,
+            duration_modifier,
             accidental);
     if (tie_status == TIE_CLOSE)
         fprintf(dst, " )");
