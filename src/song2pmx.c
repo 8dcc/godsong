@@ -102,16 +102,6 @@ typedef struct {
 } PmxDuration;
 
 /*
- * The last set octave [0..9]. By default 4, middle C to B above.
- */
-static int g_octave = 4;
-
-/*
- * The last set note duration. By default "quarter" (1).
- */
-static double g_duration = 1.0;
-
-/*
  * Top and bottom meter values. Correspond to TempleOS' `music.meter_top' and
  * `music.meter_bottom' variables.
  */
@@ -242,14 +232,17 @@ static char convert_accidental(char c) {
 }
 
 static const char* write_note(FILE* dst, const char* song) {
+    if (*song == '\0')
+        return NULL;
+
     static enum {
         TIE_NONE  = 0,
         TIE_CLOSE = 1,
         TIE_OPEN  = 2,
     } tie_status = TIE_NONE;
 
-    if (*song == '\0')
-        return NULL;
+    double duration = 1.0;
+    int octave      = 4;
 
     for (;;) {
         if (*song == '(') {
@@ -271,12 +264,13 @@ static const char* write_note(FILE* dst, const char* song) {
                     g_meter_bottom,
                     g_meter_top,
                     g_meter_bottom);
+
+            /* TODO: Shouldn't we increase `song' here? */
         } else if (isdigit(*song)) {
-            /* NOTE: Octaves and durations don't need to be global? */
-            g_octave = *song - '0';
+            octave = *song - '0';
             song++;
         } else if (is_duration_specifier(*song)) {
-            g_duration = duration_from_specifier(g_duration, *song);
+            duration = duration_from_specifier(duration, *song);
             song++;
         } else {
             break;
@@ -297,7 +291,7 @@ static const char* write_note(FILE* dst, const char* song) {
         accidental = convert_accidental(*song);
 
     /* Get pre-octave and post-octave strings related to duration */
-    PmxDuration pmx_duration = get_pmx_duration(g_duration);
+    PmxDuration pmx_duration = get_pmx_duration(duration);
     const char* pre_octave =
       (pmx_duration.pre_octave != NULL) ? pmx_duration.pre_octave : "";
     const char* post_octave =
@@ -306,7 +300,7 @@ static const char* write_note(FILE* dst, const char* song) {
     /* Print the PMX note */
     if (tie_status == TIE_OPEN)
         fprintf(dst, "( ");
-    fprintf(dst, "%c%s%d%s", note, pre_octave, g_octave, post_octave);
+    fprintf(dst, "%c%s%d%s", note, pre_octave, octave, post_octave);
     if (accidental != 0)
         fputc(accidental, dst);
     if (tie_status == TIE_CLOSE)
