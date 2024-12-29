@@ -131,7 +131,7 @@ Functions for converting english notation to latin, and viceversa.
   "Alist with the names of latin musical notes.")
 
 (defun pmx-us2latin (beg end)
-  "Translate from US to Latin notation, from BEG to END."
+  "Translate from US to latin notation; from BEG to END."
   (interactive "r")
   ;; This whole body could be moved to a general "replace-alist-in-region"
   ;; function that could be used in `pmx-latin2us' as well.
@@ -141,7 +141,7 @@ Functions for converting english notation to latin, and viceversa.
      (s-replace-all pmx-latin-notes (buffer-string)))))
 
 (defun pmx-latin2us (beg end)
-  "Translate from latin to US notation, from BEG to END."
+  "Translate from latin to US notation; from BEG to END."
   (interactive "r")
   (replace-region-contents
    beg end
