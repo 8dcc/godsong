@@ -1,0 +1,142 @@
+#+TITLE: Quick PMX cheatsheet for version 3.0.0
+#+AUTHOR: 8dcc
+#+STARTUP: nofold
+
+* General music concepts
+
+- Measure :: Also called "bar". Group of notes delimited by a vertical line.
+- Staff :: Also called "pentagram". Set of five horizontal lines and four
+  spaces.
+- System :: Each "line" of a particular piece. Includes all staffs. See
+  [[https://music.stackexchange.com/a/61910][SO answer]] and [[https://i.sstatic.net/g4XlJ.png][image]].
+
+* Setup data
+
+See section 2.1 of the PMX manual.
+
+These are the elements of the /first/ line of a PMX file, in order:
+
+- =nv=: TODO
+- =noinst=: TODO
+- =mtrnuml=: TODO
+- =mtrdenl=: TODO
+- =mtrnmp=: TODO
+- =mtrdmp=: TODO
+- =xmtrnum0=: TODO
+- =isig=: TODO
+
+These are the elements of the /second/ line of a PMX file, in order:
+
+- =npages=: Number of pages. Can be set to zero, see next option.
+- =nsyst=: Total number of systems. If =npages= is zero, this becomes the average
+  number of measures per system.
+- =musicsize=: TODO
+- =fracindent=: TODO
+
+The third line(s) has the names of each instrument according to =noinst=, starting
+with the /bottom/ instrument. You can leave these lines blank.
+
+The next line(s) contain the clefs (one clef per system, one clef per line),
+again starting with the bottom staff. Clefs:
+
+- =0= or =b=: Bass.
+- =1= or =r=: Baritone.
+- =2= or =n=: Tenor.
+- =3= or =a=: Alto.
+- =4= or =m=: Mezzo-soprano.
+- =5= or =s=: Soprano.
+- =6= or =t=: Treble.
+- =7= or =f=: French violin clef.
+- =8=: Octave treble clef.
+
+The last line of setup data contains the path to the directory where you want
+the tex file to go when PMX creates it.
+
+* Title and composer
+
+See section 2.3.7 of the PMX manual.
+
+- The =Tt= command signals that the text /on the following line/ is the title.
+- The =Tc= command signals that the text /on the following line/ is the composer's
+  name.
+- The =Ti= command signals that the text /on the following line/ is the instrument
+  name.
+
+* Note format
+
+See section 2.2.1 of the PMX manual.
+
+This is the note format:
+
+#+begin_example
+[<paren-open>]<note>[<basic-time-value><octave><dots><accidental><paren-close>]<space>
+#+end_example
+
+Where ~[...]~ is used to denote optional. Here's a list of possible values for
+some of those fields.
+
+- =note=:
+  - a-g: Note in the current octave
+- =basic-time-value=:
+  - 9: double-whole note
+  - 0: whole note
+  - 2: half note
+  - 4: quarter note
+  - 8: eighth note
+  - 1: sixteenth note
+  - 3: thirty-second (unused)
+  - 6: sixty-fourth (unused)
+- =dots=:
+  - d: dot, adds 50% of the original note's duration
+  - dd: double dot, adds 75% of the original note's duration (unused)
+- =accidental=:
+  - f: flat, pitch is half step lower until the next bar line
+  - n: natural, used to cancel flats or sharp for the specified note
+  - s: sharp, pitch is half step higher until the next bar line
+
+* Useful Emacs stuff for PMX
+
+Macros for aligning and un-aligning PMX measures. In the "align" macro, 5 is the
+number of measures per system /minus one/; so that macro is for a piece with 6
+measures per system.
+
+#+begin_src emacs-lisp :results none
+(defalias 'pmx-unalign
+  (kmacro "V G : s / \\ / / \n | / g <return> C-x C-x"))
+(defalias 'pmx-align
+  (kmacro "/ | <return> 5 n r / a <return> <escape>"))
+#+end_src
+
+Function for converting english notation to latin.
+
+#+begin_src emacs-lisp :results none
+(defconst pmx-latin-notes
+  '(("c" . "do")
+    ("d" . "re")
+    ("e" . "mi")
+    ("f" . "fa")
+    ("g" . "sol")
+    ("a" . "la")
+    ("b" . "si"))
+  "Alist with the names of latin musical notes.")
+
+(defun pmx-us2latin (beg end)
+  "Translate from US notation to Latin from BEG to END."
+  (interactive "r")
+  (replace-region-contents
+   beg end
+   (lambda ()
+     (s-replace-all pmx-latin-notes (buffer-string)))))
+
+(defun pmx-latin2us (beg end)
+  "Translate from US notation to Latin from BEG to END."
+  (interactive "r")
+  (replace-region-contents
+   beg end
+   (lambda ()
+     (s-replace-all (mapcar (lambda (elt)
+                              (cons (cdr elt)
+                                    (car elt)))
+                            pmx-latin-notes)
+                    (buffer-string)))))
+#+end_src
