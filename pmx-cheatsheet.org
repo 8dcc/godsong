@@ -96,15 +96,25 @@ some of those fields.
 
 * Useful Emacs stuff for PMX
 
-Macros for aligning and un-aligning PMX measures. In the "align" macro, 5 is the
-number of measures per system /minus one/; so that macro is for a piece with 6
-measures per system.
+Functions for filling and un-filling PMX measures.
 
 #+begin_src emacs-lisp :results none
-(defalias 'pmx-unalign
-  (kmacro "V G : s / \\ / / \n | / g <return> C-x C-x"))
-(defalias 'pmx-align
-  (kmacro "/ | <return> 5 n r / a <return> <escape>"))
+(defun pmx-fill (beg end meassures-per-system)
+  "Fill the specified number of PMX MEASSURES-PER-SYSTEM; from BEG to END."
+  (interactive "r\nnMeassures per system: ")
+  (save-excursion
+    (goto-char beg)
+    (let ((i 1))
+      (save-match-data
+        (while (search-forward "| " end t)
+          (when (zerop (mod i meassures-per-system))
+            (replace-match "/\n"))
+          (setq i (1+ i)))))))
+
+(defun pmx-unfill (beg end)
+  "Unfill PMX meassures; from BEG to END."
+  (interactive "r")
+  (replace-regexp-in-region "/\n" "|"))
 #+end_src
 
 Functions for converting english notation to latin, and viceversa.
@@ -123,6 +133,8 @@ Functions for converting english notation to latin, and viceversa.
 (defun pmx-us2latin (beg end)
   "Translate from US to Latin notation, from BEG to END."
   (interactive "r")
+  ;; This whole body could be moved to a general "replace-alist-in-region"
+  ;; function that could be used in `pmx-latin2us' as well.
   (replace-region-contents
    beg end
    (lambda ()
@@ -134,9 +146,12 @@ Functions for converting english notation to latin, and viceversa.
   (replace-region-contents
    beg end
    (lambda ()
-     (s-replace-all (mapcar (lambda (elt)
-                              (cons (cdr elt)
-                                    (car elt)))
-                            pmx-latin-notes)
-                    (buffer-string)))))
+     (s-replace-all
+      ;; Swap each element in `pmx-latin-notes', accomplishing the opposite of
+      ;; `pmx-us2latin'.
+      (mapcar (lambda (elt)
+                (cons (cdr elt)
+                      (car elt)))
+              pmx-latin-notes)
+      (buffer-string)))))
 #+end_src
