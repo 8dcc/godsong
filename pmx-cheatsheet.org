@@ -107,7 +107,7 @@ measures per system.
   (kmacro "/ | <return> 5 n r / a <return> <escape>"))
 #+end_src
 
-Function for converting english notation to latin.
+Functions for converting english notation to latin, and viceversa.
 
 #+begin_src emacs-lisp :results none
 (defconst pmx-latin-notes
@@ -121,7 +121,7 @@ Function for converting english notation to latin.
   "Alist with the names of latin musical notes.")
 
 (defun pmx-us2latin (beg end)
-  "Translate from US notation to Latin from BEG to END."
+  "Translate from US to Latin notation, from BEG to END."
   (interactive "r")
   (replace-region-contents
    beg end
@@ -129,7 +129,7 @@ Function for converting english notation to latin.
      (s-replace-all pmx-latin-notes (buffer-string)))))
 
 (defun pmx-latin2us (beg end)
-  "Translate from US notation to Latin from BEG to END."
+  "Translate from latin to US notation, from BEG to END."
   (interactive "r")
   (replace-region-contents
    beg end
