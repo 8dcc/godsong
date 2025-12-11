@@ -122,25 +122,38 @@ static int g_meter_bottom = 4;
 
 /*----------------------------------------------------------------------------*/
 
+/*
+ * Read the contents of a file into an allocated buffer, and return it.
+ */
 static char* read_song(FILE* fp) {
-    size_t str_i  = 0;
-    size_t str_sz = 100;
-    char* str     = malloc(str_sz);
+    size_t str_pos = 0;
+    size_t str_sz  = 0;
+    char* str      = NULL;
 
-    int c;
-    while ((c = fgetc(fp)) != EOF) {
+    for (;;) {
+        const int c = fgetc(fp);
+        if (c == EOF)
+            break;
+
+        /* Non-newline spaces don't have meaning in TempleOS songs */
         if (c != '\n' && isspace(c))
             continue;
 
-        if (str_i + 1 >= str_sz) {
+        /* If the string is not large enough, reallocate it */
+        if (str_pos + 1 >= str_sz) {
             str_sz += 100;
-            str = realloc(str, str_sz);
+            char* new_str = realloc(str, str_sz);
+            if (new_str == NULL) {
+                free(str);
+                return NULL;
+            }
+            str = new_str;
         }
 
-        str[str_i++] = c;
+        str[str_pos++] = c;
     }
 
-    str[str_i] = '\0';
+    str[str_pos] = '\0';
     return str;
 }
 
@@ -369,7 +382,12 @@ int main(void) {
     FILE* dst = stdout;
 
     /* Read the song into an allocated string */
-    char* song            = read_song(src);
+    char* song = read_song(src);
+    if (song == NULL) {
+        fprintf(stderr, "Could not read song.\n");
+        return 1;
+    }
+
     const char* next_note = song;
 
     /* Write the PMX header and body */
