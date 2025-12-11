@@ -147,8 +147,10 @@ char* godsong(int len, int complexity) {
     /* Random seed, used by `godbits' */
     srand(time(NULL));
 
-    char* buf   = calloc(256, sizeof(char));
     int buf_pos = 0;
+    char* buf   = calloc(256, sizeof(char));
+    if (buf == NULL)
+        return NULL;
 
     /*
      * FIXME: Why does he do this?
@@ -246,9 +248,15 @@ char* godsong(int len, int complexity) {
 int main(void) {
     FILE* dst = stdout;
 
+    /* Generate the song */
     char* result = godsong(8, COMPLEXITY_SIMPLE);
-    fprintf(dst, result);
-    fputc('\n', dst);
+    if (result == NULL) {
+        fprintf(stderr, "Could not generate song.\n");
+        return 1;
+    }
+
+    /* Print the result */
+    fprintf(dst, "%s\n", result);
 
     free(result);
     return 0;
