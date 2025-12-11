@@ -89,11 +89,11 @@
  * TempleOS duration specifiers. They set the current note duration.
  */
 enum EDurationSpecifiers {
-    DURATION_WHOLE     = 'w',
-    DURATION_HALF      = 'h',
-    DURATION_QUARTER   = 'q',
-    DURATION_EIGHTH    = 'e',
-    DURATION_SIXTEENTH = 's',
+    GODSONG_DURATION_WHOLE     = 'w',
+    GODSONG_DURATION_HALF      = 'h',
+    GODSONG_DURATION_QUARTER   = 'q',
+    GODSONG_DURATION_EIGHTH    = 'e',
+    GODSONG_DURATION_SIXTEENTH = 's',
 };
 
 /*
@@ -101,16 +101,16 @@ enum EDurationSpecifiers {
  * duration.
  */
 enum EDurationModifiers {
-    MODIFIER_TRIPLET = 't',
-    MODIFIER_DOT     = '.',
+    GODSONG_MODIFIER_TRIPLET = 't',
+    GODSONG_MODIFIER_DOT     = '.',
 };
 
 /*
  * TempleOS accidentals. They increase or lower the note pitch.
  */
 enum EAccidentals {
-    ACCIDENTAL_SHARP = '#',
-    ACCIDENTAL_FLAT  = 'b',
+    GODSONG_ACCIDENTAL_SHARP = '#',
+    GODSONG_ACCIDENTAL_FLAT  = 'b',
 };
 
 /*
@@ -125,7 +125,7 @@ static int g_meter_bottom = 4;
 /*
  * Read the contents of a file into an allocated buffer, and return it.
  */
-static char* read_song(FILE* fp) {
+static char* read_godsong(FILE* fp) {
     size_t str_pos = 0;
     size_t str_sz  = 0;
     char* str      = NULL;
@@ -163,9 +163,9 @@ static char* read_song(FILE* fp) {
  * Is the specified character a TempleOS song duration specifier?
  */
 static inline bool is_duration_specifier(char c) {
-    return c == DURATION_WHOLE || c == DURATION_WHOLE || c == DURATION_HALF ||
-           c == DURATION_QUARTER || c == DURATION_EIGHTH ||
-           c == DURATION_SIXTEENTH;
+    return c == GODSONG_DURATION_WHOLE || c == GODSONG_DURATION_WHOLE ||
+           c == GODSONG_DURATION_HALF || c == GODSONG_DURATION_QUARTER ||
+           c == GODSONG_DURATION_EIGHTH || c == GODSONG_DURATION_SIXTEENTH;
 }
 
 /*
@@ -174,19 +174,26 @@ static inline bool is_duration_specifier(char c) {
  * also PMX Manual, Section 2.2.1 Notes.
  */
 static const char* get_pmx_duration(char c) {
-    /* clang-format off */
     switch (c) {
-        case DURATION_WHOLE:      return "0";
-        case DURATION_HALF:       return "2";
-        case DURATION_QUARTER:    return "4";
-        case DURATION_EIGHTH:     return "8";
-        case DURATION_SIXTEENTH:  return "1";
+        case GODSONG_DURATION_WHOLE:
+            return "0";
+
+        case GODSONG_DURATION_HALF:
+            return "2";
+
+        case GODSONG_DURATION_QUARTER:
+            return "4";
+
+        case GODSONG_DURATION_EIGHTH:
+            return "8";
+
+        case GODSONG_DURATION_SIXTEENTH:
+            return "1";
 
         default:
             fprintf(stderr, "Invalid TempleOS duration specifier: '%c'.\n", c);
             abort();
     }
-    /* clang-format on */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -195,7 +202,7 @@ static const char* get_pmx_duration(char c) {
  * Is the specified character a TempleOS song duration modifier?
  */
 static inline bool is_duration_modifier(char c) {
-    return c == MODIFIER_TRIPLET || c == MODIFIER_DOT;
+    return c == GODSONG_MODIFIER_TRIPLET || c == GODSONG_MODIFIER_DOT;
 }
 
 /*
@@ -211,16 +218,17 @@ static inline bool is_duration_modifier(char c) {
  * documentation. See the topmost comment of this source file.
  */
 static const char* get_pmx_duration_modifier(char c) {
-    /* clang-format off */
     switch (c) {
-        case MODIFIER_TRIPLET: return "x3";
-        case MODIFIER_DOT:     return "d";
+        case GODSONG_MODIFIER_TRIPLET:
+            return "x3";
+
+        case GODSONG_MODIFIER_DOT:
+            return "d";
 
         default:
             fprintf(stderr, "Invalid TempleOS duration modifier: '%c'.\n", c);
             abort();
     }
-    /* clang-format on */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -229,7 +237,7 @@ static const char* get_pmx_duration_modifier(char c) {
  * Is the specified character a TempleOS sharp or flat specifier?
  */
 static inline bool is_accidental(char c) {
-    return c == ACCIDENTAL_SHARP || c == ACCIDENTAL_FLAT;
+    return c == GODSONG_ACCIDENTAL_SHARP || c == GODSONG_ACCIDENTAL_FLAT;
 }
 
 /*
@@ -237,16 +245,17 @@ static inline bool is_accidental(char c) {
  * specifier.
  */
 static const char* get_pmx_accidental(char c) {
-    /* clang-format off */
     switch (c) {
-        case ACCIDENTAL_SHARP: return "s";
-        case ACCIDENTAL_FLAT:  return "f";
+        case GODSONG_ACCIDENTAL_SHARP:
+            return "s";
+
+        case GODSONG_ACCIDENTAL_FLAT:
+            return "f";
 
         default:
             fprintf(stderr, "Invalid TempleOS accidental: '%c'.\n", c);
             abort();
     }
-    /* clang-format on */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -256,10 +265,10 @@ static const char* write_note(FILE* dst, const char* song) {
         return NULL;
 
     static enum {
-        TIE_NONE  = 0,
-        TIE_CLOSE = 1,
-        TIE_OPEN  = 2,
-    } tie_status = TIE_NONE;
+        TIE_STATUS_NONE  = 0,
+        TIE_STATUS_CLOSE = 1,
+        TIE_STATUS_OPEN  = 2,
+    } tie_status = TIE_STATUS_NONE;
 
     /*
      * The octave and duration variables have to be static, because if a
@@ -278,7 +287,7 @@ static const char* write_note(FILE* dst, const char* song) {
 
     for (;;) {
         if (*song == '(') {
-            tie_status = TIE_OPEN;
+            tie_status = TIE_STATUS_OPEN;
             song++;
         } else if (*song == 'M') { /* Meter specifier */
             song++;
@@ -324,7 +333,7 @@ static const char* write_note(FILE* dst, const char* song) {
     const char note = tolower(*song++);
 
     /* Print the PMX note */
-    if (tie_status == TIE_OPEN)
+    if (tie_status == TIE_STATUS_OPEN)
         fprintf(dst, "( ");
     fprintf(dst,
             "%c%s%d%s%s",
@@ -333,12 +342,12 @@ static const char* write_note(FILE* dst, const char* song) {
             octave,
             duration_modifier,
             accidental);
-    if (tie_status == TIE_CLOSE)
+    if (tie_status == TIE_STATUS_CLOSE)
         fprintf(dst, " )");
     fputc(' ', dst);
 
     /* Go to next tie status: From open to close, and from close to none. */
-    if (tie_status > TIE_NONE)
+    if (tie_status > TIE_STATUS_NONE)
         tie_status--;
 
     return song;
@@ -382,9 +391,9 @@ int main(void) {
     FILE* dst = stdout;
 
     /* Read the song into an allocated string */
-    char* song = read_song(src);
+    char* song = read_godsong(src);
     if (song == NULL) {
-        fprintf(stderr, "Could not read song.\n");
+        fprintf(stderr, "Could not read TempleOS song.\n");
         return 1;
     }
 
