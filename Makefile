@@ -7,13 +7,16 @@ LDLIBS=
 
 .PHONY: all clean
 
-all: godsong.out song2pmx.out
+all: godsong godsong2pmx
 
 clean:
-	rm -f godsong.out song2pmx.out
+	rm -f godsong godsong2pmx
 
-%.out: src/%.c
-	$(CC) $(CFLAGS) -o $@ $< $(LDLIBS)
+godsong: src/generators/godsong.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+godsong2pmx: src/converters/godsong2pmx.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 #-------------------------------------------------------------------------------
 
