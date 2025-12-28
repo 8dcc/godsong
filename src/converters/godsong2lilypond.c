@@ -99,6 +99,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+/* Tempo in BPM of a quarter note. This will affect the exported MIDI file. */
+#define LILYPOND_TEMPO_BPM 120
+
 /*
  * TempleOS duration specifiers. They set the current note duration.
  */
@@ -369,12 +372,18 @@ static const char* write_note(FILE* dst, const char* song) {
 
 static void write_lilypond_header(FILE* dst) {
     fprintf(dst,
-            "\\version \"2.24.4\"\n"
-            "{\n");
+            "\\version \"2.24.4\"\n\n"
+            "\\score {\n" /* Open score */
+            "{\n");       /* Open notes */
 }
 
 static void write_lilypond_footer(FILE* dst) {
-    fprintf(dst, "}\n");
+    fprintf(dst,
+            "}\n"                         /* Close notes */
+            "\\layout { }\n"              /* Create PDF */
+            "\\midi { \\tempo 4 = %d }\n" /* Create MIDI file */
+            "}\n",                        /* Close score */
+            LILYPOND_TEMPO_BPM);
 }
 
 /*----------------------------------------------------------------------------*/
